@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Varietal extends Model
 {
+    protected $table = 'varietales';
+
     protected $fillable = ['nombre'];
 
     public function vinos(): BelongsToMany
