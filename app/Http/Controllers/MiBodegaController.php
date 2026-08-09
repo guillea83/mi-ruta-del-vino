@@ -18,10 +18,30 @@ class MiBodegaController extends Controller
 {
     public function index(Request $request): View
     {
+        $usuarioId = $request->user()->id;
         $buscar = trim((string) $request->query('buscar', ''));
+        $favoritos = $request->boolean('favoritos');
+        $bodegaId = $request->filled('bodega_id') ? (int) $request->query('bodega_id') : null;
+        $varietalId = $request->filled('varietal_id') ? (int) $request->query('varietal_id') : null;
+        $volveria = in_array($request->query('volveria'), ['si', 'no'], true)
+            ? $request->query('volveria')
+            : '';
+        $orden = in_array($request->query('orden'), ['recientes', 'mejor_valorados'], true)
+            ? $request->query('orden')
+            : 'recientes';
 
-        $items = UsuarioVino::query()
-            ->where('user_id', $request->user()->id)
+        $minCopas = null;
+        if ($request->filled('min_copas')) {
+            $valor = (float) $request->query('min_copas');
+            $valoresPermitidos = array_map(fn ($n) => $n / 2, range(0, 10));
+
+            if (in_array($valor, $valoresPermitidos, true)) {
+                $minCopas = $valor;
+            }
+        }
+
+        $query = UsuarioVino::query()
+            ->where('user_id', $usuarioId)
             ->when($buscar !== '', function ($query) use ($buscar) {
                 $query->whereHas('vino', function ($vinoQuery) use ($buscar) {
                     $vinoQuery->where(function ($q) use ($buscar) {
@@ -31,13 +51,78 @@ class MiBodegaController extends Controller
                     });
                 });
             })
+            ->when($favoritos, fn ($query) => $query->where('favorito', true))
+            ->when($bodegaId, function ($query) use ($bodegaId) {
+                $query->whereHas('vino', fn ($vino) => $vino->where('bodega_id', $bodegaId));
+            })
+            ->when($varietalId, function ($query) use ($varietalId) {
+                $query->whereHas('vino.varietales', fn ($varietal) => $varietal->where('varietales.id', $varietalId));
+            })
+            ->when($minCopas !== null, function ($query) use ($minCopas) {
+                $minMediasCopas = (int) round($minCopas * 2);
+
+                $query->whereRaw(
+                    '(SELECT AVG(ev.calificacion_medias_copas) FROM experiencias_vino ev WHERE ev.usuario_vino_id = usuario_vinos.id) >= ?',
+                    [$minMediasCopas]
+                );
+            })
+            ->when($volveria === 'si', function ($query) {
+                $query->whereHas('experiencias', fn ($experiencia) => $experiencia->where('volveria_a_tomar', true));
+            })
+            ->when($volveria === 'no', function ($query) {
+                $query->whereHas('experiencias', fn ($experiencia) => $experiencia->where('volveria_a_tomar', false));
+            })
             ->with(['vino.bodega', 'vino.varietales', 'experiencias.fotos'])
             ->withCount('experiencias')
-            ->withAvg('experiencias as promedio_medias_copas', 'calificacion_medias_copas')
-            ->latest('updated_at')
+            ->withAvg('experiencias as promedio_medias_copas', 'calificacion_medias_copas');
+
+        if ($orden === 'mejor_valorados') {
+            $query->orderByDesc('promedio_medias_copas')->latest('updated_at');
+        } else {
+            $query->latest('updated_at');
+        }
+
+        $items = $query->get();
+
+        $bodegas = Bodega::query()
+            ->select('bodegas.*')
+            ->join('vinos', 'vinos.bodega_id', '=', 'bodegas.id')
+            ->join('usuario_vinos', 'usuario_vinos.vino_id', '=', 'vinos.id')
+            ->where('usuario_vinos.user_id', $usuarioId)
+            ->distinct()
+            ->orderBy('bodegas.nombre')
             ->get();
 
-        return view('mi-bodega.index', compact('items', 'buscar'));
+        $varietales = Varietal::query()
+            ->select('varietales.*')
+            ->join('vino_varietal', 'vino_varietal.varietal_id', '=', 'varietales.id')
+            ->join('usuario_vinos', 'usuario_vinos.vino_id', '=', 'vino_varietal.vino_id')
+            ->where('usuario_vinos.user_id', $usuarioId)
+            ->distinct()
+            ->orderBy('varietales.nombre')
+            ->get();
+
+        $hayFiltros = $buscar !== ''
+            || $favoritos
+            || $bodegaId !== null
+            || $varietalId !== null
+            || $minCopas !== null
+            || $volveria !== ''
+            || $orden !== 'recientes';
+
+        return view('mi-bodega.index', compact(
+            'items',
+            'buscar',
+            'favoritos',
+            'bodegaId',
+            'varietalId',
+            'minCopas',
+            'volveria',
+            'orden',
+            'bodegas',
+            'varietales',
+            'hayFiltros'
+        ));
     }
 
     public function create(): View
