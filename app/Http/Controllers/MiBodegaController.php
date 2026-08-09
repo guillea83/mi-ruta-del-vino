@@ -199,6 +199,10 @@ class MiBodegaController extends Controller
                 'calificacion_medias_copas' => $data['calificacion_medias_copas'],
                 'fecha_consumo' => $data['fecha_consumo'] ?? null,
                 'lugar' => $data['lugar'] ?? null,
+                'modalidad' => $data['modalidad'] ?? null,
+                'precio_pagado' => $data['precio_pagado'] ?? null,
+                'moneda' => ! empty($data['precio_pagado']) ? ($data['moneda'] ?? 'ARS') : null,
+                'lugar_compra' => $data['lugar_compra'] ?? null,
                 'acompanamiento' => $data['acompanamiento'] ?? null,
                 'notas_cata' => $data['notas_cata'] ?? null,
                 'recuerdo' => $data['recuerdo'] ?? null,
@@ -270,6 +274,10 @@ class MiBodegaController extends Controller
             'calificacion_medias_copas' => ['required', 'integer', 'between:0,10'],
             'fecha_consumo' => ['nullable', 'date'],
             'lugar' => ['nullable', 'string', 'max:180'],
+            'modalidad' => ['nullable', 'in:compra,degustacion,regalo,invitacion,restaurante,otro'],
+            'precio_pagado' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'moneda' => ['nullable', 'string', 'size:3'],
+            'lugar_compra' => ['nullable', 'string', 'max:180'],
             'acompanamiento' => ['nullable', 'string', 'max:255'],
             'notas_cata' => ['nullable', 'string', 'max:3000'],
             'recuerdo' => ['nullable', 'string', 'max:3000'],
@@ -288,7 +296,13 @@ class MiBodegaController extends Controller
             ];
         }
 
-        return $request->validate($rules);
+        $data = $request->validate($rules);
+
+        if (! empty($data['moneda'])) {
+            $data['moneda'] = strtoupper($data['moneda']);
+        }
+
+        return $data;
     }
 
     private function resolverVino(array $data): Vino
@@ -339,6 +353,10 @@ class MiBodegaController extends Controller
             'calificacion_medias_copas' => $data['calificacion_medias_copas'],
             'fecha_consumo' => $data['fecha_consumo'] ?? now()->toDateString(),
             'lugar' => $data['lugar'] ?? null,
+            'modalidad' => $data['modalidad'] ?? null,
+            'precio_pagado' => $data['precio_pagado'] ?? null,
+            'moneda' => ! empty($data['precio_pagado']) ? ($data['moneda'] ?? 'ARS') : null,
+            'lugar_compra' => $data['lugar_compra'] ?? null,
             'acompanamiento' => $data['acompanamiento'] ?? null,
             'notas_cata' => $data['notas_cata'] ?? null,
             'recuerdo' => $data['recuerdo'] ?? null,
