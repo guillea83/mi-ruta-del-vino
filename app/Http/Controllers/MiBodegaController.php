@@ -11,6 +11,7 @@ use App\Models\Vino;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class MiBodegaController extends Controller
@@ -77,6 +78,17 @@ class MiBodegaController extends Controller
         return view('mi-bodega.show', compact('item'));
     }
 
+    public function toggleFavorito(Request $request, int $usuarioVino): RedirectResponse
+    {
+        $item = $this->buscarDelUsuario($request, $usuarioVino);
+        $item->update(['favorito' => ! $item->favorito]);
+
+        return back()->with(
+            'status',
+            $item->favorito ? 'Agregado a tus favoritos.' : 'Quitado de tus favoritos.'
+        );
+    }
+
     public function storeExperiencia(Request $request, int $usuarioVino): RedirectResponse
     {
         $item = $this->buscarDelUsuario($request, $usuarioVino);
@@ -89,6 +101,73 @@ class MiBodegaController extends Controller
         return redirect()
             ->route('mi-bodega.show', $item)
             ->with('status', 'Nueva experiencia agregada sin modificar las anteriores.');
+    }
+
+    public function updateExperiencia(Request $request, int $usuarioVino, int $experiencia): RedirectResponse
+    {
+        $item = $this->buscarDelUsuario($request, $usuarioVino);
+        $experienciaModel = $item->experiencias()->whereKey($experiencia)->firstOrFail();
+        $data = $this->validarCarga($request, false);
+
+        DB::transaction(function () use ($request, $item, $experienciaModel, $data) {
+            $experienciaModel->update([
+                'calificacion_medias_copas' => $data['calificacion_medias_copas'],
+                'fecha_consumo' => $data['fecha_consumo'] ?? null,
+                'lugar' => $data['lugar'] ?? null,
+                'acompanamiento' => $data['acompanamiento'] ?? null,
+                'notas_cata' => $data['notas_cata'] ?? null,
+                'recuerdo' => $data['recuerdo'] ?? null,
+                'volveria_a_tomar' => $data['volveria_a_tomar'] ?? null,
+            ]);
+
+            if ($request->hasFile('foto')) {
+                $ruta = $request->file('foto')->store('vinos/'.$request->user()->id, 'public');
+
+                FotoExperienciaVino::create([
+                    'experiencia_vino_id' => $experienciaModel->id,
+                    'ruta' => $ruta,
+                    'es_principal' => $experienciaModel->fotos()->doesntExist(),
+                ]);
+            }
+
+            $item->touch();
+        });
+
+        return redirect()
+            ->route('mi-bodega.show', $item)
+            ->with('status', 'Experiencia actualizada.');
+    }
+
+    public function destroyExperiencia(Request $request, int $usuarioVino, int $experiencia): RedirectResponse
+    {
+        $item = $this->buscarDelUsuario($request, $usuarioVino);
+        $experienciaModel = $item->experiencias()->with('fotos')->whereKey($experiencia)->firstOrFail();
+        $rutas = $experienciaModel->fotos->pluck('ruta')->all();
+        $eraLaUltima = $item->experiencias()->count() === 1;
+
+        DB::transaction(function () use ($item, $experienciaModel, $eraLaUltima) {
+            $experienciaModel->delete();
+
+            if ($eraLaUltima) {
+                $item->delete();
+            } else {
+                $item->touch();
+            }
+        });
+
+        if ($rutas !== []) {
+            Storage::disk('public')->delete($rutas);
+        }
+
+        if ($eraLaUltima) {
+            return redirect()
+                ->route('mi-bodega.index')
+                ->with('status', 'El vino salió de tu Bodega Personal porque ya no tenía experiencias.');
+        }
+
+        return redirect()
+            ->route('mi-bodega.show', $item->id)
+            ->with('status', 'Experiencia eliminada.');
     }
 
     private function buscarDelUsuario(Request $request, int $id): UsuarioVino
