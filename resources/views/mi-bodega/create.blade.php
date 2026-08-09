@@ -32,14 +32,14 @@
                         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-2xl">📸</div>
                         <div>
                             <h3 class="text-lg font-bold text-gray-900">1. La foto del recuerdo</h3>
-                            <p class="mt-1 text-sm text-gray-600">En el celular podés sacar la foto en el momento o elegir una de la galería.</p>
+                            <p class="mt-1 text-sm text-gray-600">En el celular podés sacar una foto en el momento o elegir una que ya tengas en tu galería.</p>
                         </div>
                     </div>
                     <label class="mt-5 block cursor-pointer rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/60 p-6 text-center hover:bg-rose-50">
                         <span class="block text-3xl">🍷</span>
-                        <span class="mt-2 block font-semibold text-rose-900">Sacar foto o elegir imagen</span>
+                        <span class="mt-2 block font-semibold text-rose-900">Sacar foto o elegir de la galería</span>
                         <span class="mt-1 block text-xs text-gray-500">JPG, PNG o imagen del teléfono · hasta 10 MB</span>
-                        <input type="file" name="foto" accept="image/*" capture="environment" class="mt-4 block w-full text-sm text-gray-600">
+                        <input type="file" name="foto" accept="image/*" class="mt-4 block w-full text-sm text-gray-600">
                     </label>
                 </section>
 
