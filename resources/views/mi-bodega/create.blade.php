@@ -106,6 +106,43 @@
                             <label for="lugar" class="block text-sm font-semibold text-gray-700">¿Dónde lo tomaste?</label>
                             <input id="lugar" name="lugar" value="{{ old('lugar') }}" type="text" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Casa, bar, restaurante, bodega...">
                         </div>
+
+                        <div class="sm:col-span-2 rounded-2xl bg-amber-50 p-4">
+                            <p class="text-sm font-bold text-gray-900">💰 Precio de esta experiencia <span class="font-normal text-gray-500">(opcional)</span></p>
+                            <p class="mt-1 text-xs leading-5 text-gray-600">Si fue una degustación, un regalo o no sabés cuánto costó, dejá el precio vacío. No lo vamos a tratar como $0.</p>
+
+                            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                <div class="sm:col-span-2">
+                                    <label for="modalidad" class="block text-sm font-semibold text-gray-700">¿Cómo llegó el vino a esta experiencia?</label>
+                                    <select id="modalidad" name="modalidad" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500">
+                                        <option value="">No especificar</option>
+                                        <option value="compra" @selected(old('modalidad') === 'compra')>Lo compré</option>
+                                        <option value="degustacion" @selected(old('modalidad') === 'degustacion')>Degustación</option>
+                                        <option value="regalo" @selected(old('modalidad') === 'regalo')>Fue un regalo</option>
+                                        <option value="invitacion" @selected(old('modalidad') === 'invitacion')>Me invitaron</option>
+                                        <option value="restaurante" @selected(old('modalidad') === 'restaurante')>Restaurante / bar</option>
+                                        <option value="otro" @selected(old('modalidad') === 'otro')>Otro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="precio_pagado" class="block text-sm font-semibold text-gray-700">Precio pagado</label>
+                                    <input id="precio_pagado" name="precio_pagado" value="{{ old('precio_pagado') }}" type="number" min="0" step="0.01" inputmode="decimal" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Ej. 18500">
+                                </div>
+                                <div>
+                                    <label for="moneda" class="block text-sm font-semibold text-gray-700">Moneda</label>
+                                    <select id="moneda" name="moneda" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500">
+                                        <option value="ARS" @selected(old('moneda', 'ARS') === 'ARS')>ARS - Peso argentino</option>
+                                        <option value="USD" @selected(old('moneda') === 'USD')>USD - Dólar</option>
+                                        <option value="EUR" @selected(old('moneda') === 'EUR')>EUR - Euro</option>
+                                    </select>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label for="lugar_compra" class="block text-sm font-semibold text-gray-700">¿Dónde lo compraste o pagaste?</label>
+                                    <input id="lugar_compra" name="lugar_compra" value="{{ old('lugar_compra') }}" type="text" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Vinoteca, bodega, restaurante...">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="sm:col-span-2">
                             <label for="acompanamiento" class="block text-sm font-semibold text-gray-700">¿Con qué lo acompañaste?</label>
                             <input id="acompanamiento" name="acompanamiento" value="{{ old('acompanamiento') }}" type="text" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Asado, pastas, quesos, pescado...">
