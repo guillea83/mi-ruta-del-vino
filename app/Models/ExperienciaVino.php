@@ -15,6 +15,10 @@ class ExperienciaVino extends Model
         'calificacion_medias_copas',
         'fecha_consumo',
         'lugar',
+        'modalidad',
+        'precio_pagado',
+        'moneda',
+        'lugar_compra',
         'acompanamiento',
         'notas_cata',
         'recuerdo',
@@ -26,6 +30,7 @@ class ExperienciaVino extends Model
         return [
             'fecha_consumo' => 'date',
             'calificacion_medias_copas' => 'integer',
+            'precio_pagado' => 'decimal:2',
             'volveria_a_tomar' => 'boolean',
         ];
     }
