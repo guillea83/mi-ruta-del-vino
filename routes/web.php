@@ -20,5 +20,8 @@ Route::middleware([
     Route::get('/mi-bodega/guardar', [MiBodegaController::class, 'create'])->name('mi-bodega.create');
     Route::post('/mi-bodega', [MiBodegaController::class, 'store'])->name('mi-bodega.store');
     Route::get('/mi-bodega/{usuarioVino}', [MiBodegaController::class, 'show'])->whereNumber('usuarioVino')->name('mi-bodega.show');
+    Route::post('/mi-bodega/{usuarioVino}/favorito', [MiBodegaController::class, 'toggleFavorito'])->whereNumber('usuarioVino')->name('mi-bodega.favorito');
     Route::post('/mi-bodega/{usuarioVino}/experiencias', [MiBodegaController::class, 'storeExperiencia'])->whereNumber('usuarioVino')->name('mi-bodega.experiencias.store');
+    Route::put('/mi-bodega/{usuarioVino}/experiencias/{experiencia}', [MiBodegaController::class, 'updateExperiencia'])->whereNumber(['usuarioVino', 'experiencia'])->name('mi-bodega.experiencias.update');
+    Route::delete('/mi-bodega/{usuarioVino}/experiencias/{experiencia}', [MiBodegaController::class, 'destroyExperiencia'])->whereNumber(['usuarioVino', 'experiencia'])->name('mi-bodega.experiencias.destroy');
 });
