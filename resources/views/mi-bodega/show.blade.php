@@ -174,7 +174,8 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700">Agregar otra foto</label>
-                                        <input type="file" name="foto" accept="image/*" capture="environment" class="mt-2 block w-full text-sm text-gray-600">
+                                        <input type="file" name="foto" accept="image/*" class="mt-2 block w-full text-sm text-gray-600">
+                                        <p class="mt-1 text-xs text-gray-500">Podés sacar una foto o elegir una de tu galería.</p>
                                     </div>
                                 </div>
 
@@ -241,7 +242,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-gray-700">Nueva foto</label>
-                            <input type="file" name="foto" accept="image/*" capture="environment" class="mt-2 block w-full text-sm text-gray-600">
+                            <input type="file" name="foto" accept="image/*" class="mt-2 block w-full text-sm text-gray-600">
+                            <p class="mt-1 text-xs text-gray-500">Podés sacar una foto o elegir una de tu galería.</p>
                         </div>
                     </div>
 
