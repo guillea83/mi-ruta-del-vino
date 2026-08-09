@@ -30,6 +30,14 @@
                 $ultima = $item->experiencias->first();
                 $fotoPrincipal = $ultima?->fotos->firstWhere('es_principal', true) ?? $ultima?->fotos->first();
                 $promedioHalf = $item->promedio_medias_copas === null ? null : (int) round($item->promedio_medias_copas);
+                $modalidades = [
+                    'compra' => 'Lo compré',
+                    'degustacion' => 'Degustación',
+                    'regalo' => 'Fue un regalo',
+                    'invitacion' => 'Me invitaron',
+                    'restaurante' => 'Restaurante / bar',
+                    'otro' => 'Otro',
+                ];
             @endphp
 
             <section class="overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950 via-red-900 to-amber-800 text-white shadow-xl">
@@ -130,6 +138,13 @@
                             <div x-show="!editando" class="mt-4 grid gap-3 text-sm text-gray-700 sm:grid-cols-2">
                                 @if ($experiencia->lugar)<p>📍 <strong>Dónde:</strong> {{ $experiencia->lugar }}</p>@endif
                                 @if ($experiencia->acompanamiento)<p>🍽️ <strong>Con qué:</strong> {{ $experiencia->acompanamiento }}</p>@endif
+                                @if ($experiencia->modalidad)<p>🥂 <strong>Contexto:</strong> {{ $modalidades[$experiencia->modalidad] ?? $experiencia->modalidad }}</p>@endif
+                                @if ($experiencia->precio_pagado !== null)
+                                    <p>💰 <strong>Precio:</strong> {{ $experiencia->moneda ?? 'ARS' }} {{ number_format((float) $experiencia->precio_pagado, 2, ',', '.') }}</p>
+                                @elseif ($experiencia->modalidad)
+                                    <p class="text-gray-500">💰 <strong>Precio:</strong> no registrado / no conocido</p>
+                                @endif
+                                @if ($experiencia->lugar_compra)<p class="sm:col-span-2">🛍️ <strong>Dónde se consiguió:</strong> {{ $experiencia->lugar_compra }}</p>@endif
                                 @if ($experiencia->notas_cata)<p class="sm:col-span-2"><strong>Notas:</strong> {{ $experiencia->notas_cata }}</p>@endif
                                 @if ($experiencia->recuerdo)<p class="sm:col-span-2 rounded-xl bg-amber-50 p-3"><strong>Recuerdo:</strong> {{ $experiencia->recuerdo }}</p>@endif
                             </div>
@@ -151,6 +166,31 @@
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700">Lugar</label>
                                         <input name="lugar" value="{{ $experiencia->lugar }}" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Contexto</label>
+                                        <select name="modalidad" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500">
+                                            <option value="">No especificar</option>
+                                            @foreach ($modalidades as $valorModalidad => $textoModalidad)
+                                                <option value="{{ $valorModalidad }}" @selected($experiencia->modalidad === $valorModalidad)>{{ $textoModalidad }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Precio pagado <span class="font-normal text-gray-500">(opcional)</span></label>
+                                        <div class="mt-2 grid grid-cols-[1fr_105px] gap-2">
+                                            <input name="precio_pagado" value="{{ $experiencia->precio_pagado }}" type="number" min="0" step="0.01" inputmode="decimal" class="block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="18500">
+                                            <select name="moneda" class="block w-full rounded-xl border-gray-300 text-sm focus:border-rose-500 focus:ring-rose-500">
+                                                <option value="ARS" @selected(($experiencia->moneda ?? 'ARS') === 'ARS')>ARS</option>
+                                                <option value="USD" @selected($experiencia->moneda === 'USD')>USD</option>
+                                                <option value="EUR" @selected($experiencia->moneda === 'EUR')>EUR</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-sm font-semibold text-gray-700">¿Dónde lo compraste o pagaste?</label>
+                                        <input name="lugar_compra" value="{{ $experiencia->lugar_compra }}" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Vinoteca, bodega, restaurante...">
+                                        <p class="mt-1 text-xs text-gray-500">Si fue degustación, regalo o no sabés el precio, podés dejar estos datos vacíos.</p>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-sm font-semibold text-gray-700">¿Con qué lo acompañaste?</label>
@@ -220,6 +260,31 @@
                             <label class="block text-sm font-semibold text-gray-700">Lugar</label>
                             <input name="lugar" value="{{ old('lugar') }}" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Bar, casa, bodega...">
                         </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">Contexto</label>
+                            <select name="modalidad" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500">
+                                <option value="">No especificar</option>
+                                @foreach ($modalidades as $valorModalidad => $textoModalidad)
+                                    <option value="{{ $valorModalidad }}" @selected(old('modalidad') === $valorModalidad)>{{ $textoModalidad }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700">Precio pagado <span class="font-normal text-gray-500">(opcional)</span></label>
+                            <div class="mt-2 grid grid-cols-[1fr_105px] gap-2">
+                                <input name="precio_pagado" value="{{ old('precio_pagado') }}" type="number" min="0" step="0.01" inputmode="decimal" class="block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="18500">
+                                <select name="moneda" class="block w-full rounded-xl border-gray-300 text-sm focus:border-rose-500 focus:ring-rose-500">
+                                    <option value="ARS" @selected(old('moneda', 'ARS') === 'ARS')>ARS</option>
+                                    <option value="USD" @selected(old('moneda') === 'USD')>USD</option>
+                                    <option value="EUR" @selected(old('moneda') === 'EUR')>EUR</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700">¿Dónde lo compraste o pagaste?</label>
+                            <input name="lugar_compra" value="{{ old('lugar_compra') }}" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Vinoteca, bodega, restaurante...">
+                            <p class="mt-1 text-xs text-gray-500">Si fue degustación, regalo o no sabés el precio, dejalo vacío.</p>
+                        </div>
                         <div class="sm:col-span-2">
                             <label class="block text-sm font-semibold text-gray-700">¿Con qué lo acompañaste?</label>
                             <input name="acompanamiento" value="{{ old('acompanamiento') }}" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500" placeholder="Pastas, asado, quesos...">
@@ -236,8 +301,8 @@
                             <label class="block text-sm font-semibold text-gray-700">¿Lo volverías a tomar?</label>
                             <select name="volveria_a_tomar" class="mt-2 block w-full rounded-xl border-gray-300 text-base focus:border-rose-500 focus:ring-rose-500">
                                 <option value="">Todavía no sé</option>
-                                <option value="1">Sí</option>
-                                <option value="0">No por ahora</option>
+                                <option value="1" @selected(old('volveria_a_tomar') === '1')>Sí</option>
+                                <option value="0" @selected(old('volveria_a_tomar') === '0')>No por ahora</option>
                             </select>
                         </div>
                         <div>
