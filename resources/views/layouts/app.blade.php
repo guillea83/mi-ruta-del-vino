@@ -48,6 +48,8 @@
 
         @stack('modals')
 
-        @livewireScripts
+        @livewireScripts([
+            'url' => rtrim(request()->getBaseUrl(), '/').(config('app.debug') ? '/livewire/livewire.js' : '/livewire/livewire.min.js'),
+        ])
     </body>
 </html>
