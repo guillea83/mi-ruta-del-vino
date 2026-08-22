@@ -44,7 +44,7 @@
                 <div class="grid md:grid-cols-[0.8fr_1.2fr]">
                     <div class="min-h-72 bg-black/10">
                         @if ($fotoPrincipal)
-                            <img src="{{ asset('storage/'.$fotoPrincipal->ruta) }}" alt="{{ $item->vino->nombre }}" class="h-full max-h-[430px] w-full object-cover">
+                            <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($fotoPrincipal->ruta) }}" alt="{{ $item->vino->nombre }}" class="h-full max-h-[430px] w-full object-cover">
                         @else
                             <div class="flex h-full min-h-72 items-center justify-center text-8xl">🍷</div>
                         @endif
@@ -130,7 +130,7 @@
                             @if ($experiencia->fotos->isNotEmpty())
                                 <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                                     @foreach ($experiencia->fotos as $foto)
-                                        <img src="{{ asset('storage/'.$foto->ruta) }}" alt="Foto de {{ $item->vino->nombre }}" class="aspect-square w-full rounded-xl object-cover">
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($foto->ruta) }}" alt="Foto de {{ $item->vino->nombre }}" class="aspect-square w-full rounded-xl object-cover">
                                     @endforeach
                                 </div>
                             @endif
