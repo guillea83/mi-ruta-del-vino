@@ -135,7 +135,7 @@
                         <a href="{{ route('mi-bodega.show', $item) }}" class="group overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
                             <div class="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-rose-100 to-amber-50">
                                 @if ($foto)
-                                    <img src="{{ asset('storage/'.$foto->ruta) }}" alt="{{ $item->vino->nombre }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]">
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($foto->ruta) }}" alt="{{ $item->vino->nombre }}" class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]">
                                 @else
                                     <div class="flex h-full items-center justify-center text-7xl">🍷</div>
                                 @endif
