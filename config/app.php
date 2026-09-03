@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'optimize_clear_email' => env('OPTIMIZE_CLEAR_EMAIL'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
