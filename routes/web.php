@@ -25,6 +25,19 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
+    Route::get('/optimize-clear', function () {
+        abort_unless(
+            auth()->user()?->email === config('app.optimize_clear_email'),
+            403
+        );
+
+        Artisan::call('optimize:clear');
+
+        return 'Optimize clear ejecutado correctamente.<br><pre>'
+            . Artisan::output()
+            . '</pre>';
+    })->name('optimize-clear');
+
     Route::get('/mi-bodega', [MiBodegaController::class, 'index'])->name('mi-bodega.index');
     Route::get('/mi-bodega/guardar', [MiBodegaController::class, 'create'])->name('mi-bodega.create');
     Route::post('/mi-bodega', [MiBodegaController::class, 'store'])->name('mi-bodega.store');
@@ -33,14 +46,4 @@ Route::middleware([
     Route::post('/mi-bodega/{usuarioVino}/experiencias', [MiBodegaController::class, 'storeExperiencia'])->whereNumber('usuarioVino')->name('mi-bodega.experiencias.store');
     Route::put('/mi-bodega/{usuarioVino}/experiencias/{experiencia}', [MiBodegaController::class, 'updateExperiencia'])->whereNumber(['usuarioVino', 'experiencia'])->name('mi-bodega.experiencias.update');
     Route::delete('/mi-bodega/{usuarioVino}/experiencias/{experiencia}', [MiBodegaController::class, 'destroyExperiencia'])->whereNumber(['usuarioVino', 'experiencia'])->name('mi-bodega.experiencias.destroy');
-});
-
-
-
-Route::get('/optimize-clear', function () {
-    Artisan::call('optimize:clear');
-
-    return 'Optimize clear ejecutado correctamente.<br><pre>'
-        . Artisan::output()
-        . '</pre>';
 });
