@@ -1,5 +1,4 @@
-<x-app-layout>
-<x-slot name="header"><h2 class="text-xl font-bold text-rose-950">🍇 Recorré</h2></x-slot>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recorré · Mi Ruta del Vino</title>@vite(['resources/css/app.css', 'resources/js/app.js'])</head><body class="bg-gray-50 text-gray-900"><header class="bg-white border-b"><div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center"><a class="font-bold text-rose-950" href="{{ url('/') }}">🍷 Mi Ruta del Vino</a><a class="text-rose-900 font-semibold" href="{{ auth()->check() ? route('dashboard') : route('login') }}">{{ auth()->check() ? 'Mi cuenta' : 'Ingresar' }}</a></div></header>
 <div class="max-w-7xl mx-auto px-4 py-8">
  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
  <div><h1 class="text-3xl font-bold text-rose-950">Descubrí lugares y experiencias del vino</h1><p class="text-gray-600 mt-2">Vinotecas y otros establecimientos adheridos. Eventos publicados por sus organizadores.</p></div>
@@ -37,4 +36,4 @@ document.addEventListener('DOMContentLoaded', function () {
  if(puntos.length) mapa.fitBounds(L.featureGroup(puntos).getBounds().pad(.15),{maxZoom:13});
 });
 </script>
-</x-app-layout>
+</body></html>
