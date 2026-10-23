@@ -19,6 +19,7 @@
                        class="rounded-xl px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('mi-bodega.index', 'mi-bodega.show') ? 'bg-rose-50 text-rose-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         Mi Bodega Personal
                     </a>
+                    <a href="{{ route('recorre.index') }}" class="rounded-xl px-3 py-2 text-sm font-semibold {{ request()->routeIs('recorre.*') ? 'bg-rose-50 text-rose-900' : 'text-gray-600 hover:bg-gray-50' }}">Recorré</a>
                     <a href="{{ route('mi-bodega.create') }}"
                        class="rounded-xl px-3 py-2 text-sm font-semibold transition {{ request()->routeIs('mi-bodega.create') ? 'bg-rose-50 text-rose-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         Guardar un vino
@@ -93,6 +94,7 @@
                class="block rounded-xl px-4 py-3 text-base font-semibold {{ request()->routeIs('mi-bodega.index', 'mi-bodega.show') ? 'bg-rose-50 text-rose-900' : 'text-gray-700' }}">
                 🍷 Mi Bodega Personal
             </a>
+            <a href="{{ route('recorre.index') }}" class="block rounded-xl px-4 py-3 text-base font-semibold text-gray-700">📍 Recorré</a>
             <a href="{{ route('mi-bodega.create') }}"
                class="block rounded-xl bg-rose-900 px-4 py-3 text-base font-bold text-white">
                 ＋ Guardar un vino
