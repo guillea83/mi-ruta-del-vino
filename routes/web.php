@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MiBodegaController;
+use App\Http\Controllers\RecorreController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Artisan;
@@ -15,6 +16,8 @@ Route::get('/storage/{path}', function (string $path) {
 
     return Storage::disk('public')->response($path);
 })->where('path', '.*')->name('storage.public');
+
+Route::get('/recorre', [RecorreController::class, 'index'])->name('recorre.index');
 
 Route::middleware([
     'auth:sanctum',
@@ -37,6 +40,11 @@ Route::middleware([
             . Artisan::output()
             . '</pre>';
     })->name('optimize-clear');
+
+    Route::get('/recorre/panel', [RecorreController::class, 'panel'])->name('recorre.panel');
+    Route::post('/recorre/establecimientos', [RecorreController::class, 'registrar'])->name('recorre.registrar');
+    Route::post('/recorre/eventos', [RecorreController::class, 'publicarEvento'])->name('recorre.eventos');
+    Route::post('/recorre/moderar/{tipo}/{id}', [RecorreController::class, 'moderar'])->name('recorre.moderar');
 
     Route::get('/mi-bodega', [MiBodegaController::class, 'index'])->name('mi-bodega.index');
     Route::get('/mi-bodega/guardar', [MiBodegaController::class, 'create'])->name('mi-bodega.create');
