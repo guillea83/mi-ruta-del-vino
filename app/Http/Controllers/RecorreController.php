@@ -12,7 +12,11 @@ class RecorreController extends Controller
 {
     private function leer(string $archivo): array
     {
-        return json_decode(Storage::disk('local')->get('recorre/'.$archivo), true) ?: [];
+        $disco = Storage::disk('local');
+        if (! $disco->exists('recorre/'.$archivo)) {
+            return [];
+        }
+        return json_decode($disco->get('recorre/'.$archivo), true) ?: [];
     }
 
     private function guardar(string $archivo, array $registros): void
