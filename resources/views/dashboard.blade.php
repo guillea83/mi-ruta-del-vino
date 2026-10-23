@@ -56,11 +56,11 @@
                     <p class="mt-2 text-sm leading-6 text-gray-600">Reencontrá los vinos que ya tomaste y todas tus experiencias con cada uno.</p>
                 </a>
 
-                <div class="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6">
+                <a href="{{ route('recorre.index') }}" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                     <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-200 text-2xl">🌐</div>
-                    <h3 class="mt-5 text-lg font-semibold text-gray-900">Próximamente</h3>
-                    <p class="mt-2 text-sm leading-6 text-gray-600">Información de bodegas, amigos, eventos, recomendaciones, beneficios y dónde conseguir cada vino.</p>
-                </div>
+                    <h3 class="mt-5 text-lg font-semibold text-gray-900">Recorré</h3>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">Explorá vinotecas, bodegas, viñedos y eventos en el mapa. Los establecimientos pueden solicitar su adhesión.</p>
+                </a>
             </section>
         </div>
     </div>
