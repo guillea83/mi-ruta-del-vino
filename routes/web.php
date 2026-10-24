@@ -42,6 +42,8 @@ Route::middleware([
     })->name('optimize-clear');
 
     Route::get('/recorre/panel', [RecorreController::class, 'panel'])->name('recorre.panel');
+    Route::get('/recorre/admin', [RecorreController::class, 'administrar'])->name('recorre.admin');
+    Route::post('/recorre/admin/establecimientos', [RecorreController::class, 'crearComoAdministrador'])->name('recorre.admin.crear');
     Route::post('/recorre/establecimientos', [RecorreController::class, 'registrar'])->name('recorre.registrar');
     Route::post('/recorre/eventos', [RecorreController::class, 'publicarEvento'])->name('recorre.eventos');
     Route::post('/recorre/moderar/{tipo}/{id}', [RecorreController::class, 'moderar'])->name('recorre.moderar');
