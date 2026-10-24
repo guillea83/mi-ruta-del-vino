@@ -20,8 +20,36 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
  if (typeof L === 'undefined') return;
- const mapa = L.map('mapa-recorre').setView([-34.6,-58.4],5);
- L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:19,updateWhenIdle:true,keepBuffer:2}).addTo(mapa);
+ const mapa = L.map('mapa-recorre', { fadeAnimation: false }).setView([-34.6,-58.4],5);
+ const urlTeselas = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+ const opciones = {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
+  updateWhenIdle: true,
+  updateWhenZooming: false,
+  keepBuffer: 1
+ };
+ // Vista general: menos solicitudes y carga más rápida, con menor definición.
+ // Vista cercana: detalle normal para ubicar comercios y calles.
+ const capaGeneral = L.tileLayer(urlTeselas, {...opciones, tileSize: 512, zoomOffset: -1});
+ const capaDetalle = L.tileLayer(urlTeselas, opciones);
+ let capaActual = null;
+ let revision = 0;
+ function actualizarCapa() {
+  const siguiente = mapa.getZoom() <= 8 ? capaGeneral : capaDetalle;
+  if (siguiente === capaActual) return;
+  const anterior = capaActual;
+  capaActual = siguiente;
+  const version = ++revision;
+  siguiente.addTo(mapa);
+  if (anterior) {
+   siguiente.once('load', function () {
+    if (version === revision && mapa.hasLayer(anterior)) mapa.removeLayer(anterior);
+   });
+  }
+ }
+ mapa.on('zoomend', actualizarCapa);
+ actualizarCapa();
  const lugares = @json($establecimientos);
  const puntos=[];
  lugares.forEach(function(l){
