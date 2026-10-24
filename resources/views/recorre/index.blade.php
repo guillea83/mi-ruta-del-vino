@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recorré · Mi Ruta del Vino</title><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">@vite(['resources/css/app.css', 'resources/js/app.js'])</head><body class="bg-gray-50 text-gray-900"><header class="bg-white border-b"><div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center"><a class="font-bold text-rose-950" href="{{ url('/') }}">🍷 Mi Ruta del Vino</a><a class="text-rose-900 font-semibold" href="{{ auth()->check() ? route('dashboard') : route('login') }}">{{ auth()->check() ? 'Mi cuenta' : 'Ingresar' }}</a></div></header>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Recorré · Mi Ruta del Vino</title><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.15.0/dist/maplibre-gl.css">@vite(['resources/css/app.css', 'resources/js/app.js'])</head><body class="bg-gray-50 text-gray-900"><header class="bg-white border-b"><div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center"><a class="font-bold text-rose-950" href="{{ url('/') }}">🍷 Mi Ruta del Vino</a><a class="text-rose-900 font-semibold" href="{{ auth()->check() ? route('dashboard') : route('login') }}">{{ auth()->check() ? 'Mi cuenta' : 'Ingresar' }}</a></div></header>
 <div class="max-w-7xl mx-auto px-4 py-8">
  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
  <div><h1 class="text-3xl font-bold text-rose-950">Descubrí lugares y experiencias del vino</h1><p class="text-gray-600 mt-2">Vinotecas y otros establecimientos adheridos. Eventos publicados por sus organizadores.</p></div>
@@ -6,7 +6,7 @@
  @else <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ route('login') }}">Adherir mi establecimiento</a> @endauth
  </div>
  <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white">
-  <div id="mapa-recorre" style="height:460px;min-height:320px;background:#eef0ed"></div>
+  <div id="mapa-recorre" style="height:460px;min-height:320px;background:#171923"></div>
   <p id="mapa-estado" class="px-4 py-2 text-sm text-gray-500" aria-live="polite">Cargando mapa…</p>
  </div>
  <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -19,60 +19,80 @@
  <article class="p-5 bg-white rounded-2xl border shadow-sm"><p class="text-sm font-semibold text-rose-700">{{ $evento['fecha'] }} {{ $evento['hora'] ?? '' }}</p><h3 class="text-lg font-bold mt-1">{{ $evento['titulo'] }}</h3><p class="mt-2">{{ $evento['descripcion'] ?? '' }}</p>@if(!empty($evento['enlace']))<a class="text-rose-800 underline mt-3 inline-block" href="{{ $evento['enlace'] }}" target="_blank" rel="noopener noreferrer">Consultar al organizador ↗</a>@endif</article>
  @empty <p class="text-gray-600">No hay eventos publicados por ahora.</p> @endforelse</div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
- if (typeof L === 'undefined') return;
- // Una sola capa de teselas estándar (256 × 256 píxeles). La combinación
- // anterior de capas de 512/256 provocaba parches y espacios en blanco.
- const mapa = L.map('mapa-recorre', {
-  zoomControl: true,
-  fadeAnimation: false,
-  preferCanvas: true
- }).setView([-37.5, -63.5], 4);
+<script type="module">
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.15.0/dist/maplibre-gl.mjs';
 
- const estado = document.getElementById('mapa-estado');
- let fallas = 0;
- const capa = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  minZoom: 3,
-  maxZoom: 19,
-  tileSize: 256,
-  updateWhenIdle: true,
-  keepBuffer: 2
+const estado = document.getElementById('mapa-estado');
+const lugares = @json($establecimientos);
+const urlFicha = @json(route('recorre.establecimientos.show', ['id' => '__ID__']));
+const mapa = new maplibregl.Map({
+ container: 'mapa-recorre',
+ style: 'https://tiles.openfreemap.org/styles/dark',
+ center: [-63.5, -37.5],
+ zoom: 4,
+ attributionControl: true,
+});
+
+mapa.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
+mapa.touchZoomRotate.disableRotation();
+mapa.dragRotate.disable();
+mapa.touchPitch.disable();
+
+mapa.on('error', function () {
+ if (estado) {
+  estado.hidden = false;
+  estado.textContent = 'No se pudo cargar el mapa. Revisá tu conexión e intentá actualizar la página.';
+ }
+});
+
+mapa.on('load', function () {
+ if (estado) estado.hidden = true;
+ const bounds = new maplibregl.LngLatBounds();
+ let cantidad = 0;
+
+ lugares.forEach(function (lugar) {
+  const lat = Number(lugar.latitud);
+  const lng = Number(lugar.longitud);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+  const icono = document.createElement('div');
+  icono.className = 'recorre-copa-marker';
+  icono.setAttribute('aria-label', 'Ubicación de ' + lugar.nombre);
+  icono.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 42" width="38" height="42" aria-hidden="true"><path d="M8 5h20l-2.1 12.2a8 8 0 0 1-6.4 6.5V34h7v3H9.5v-3h7v-10.3a8 8 0 0 1-6.4-6.5L8 5Z" fill="#9f1239" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M11 9h14l-1.1 7.5H12.1L11 9Z" fill="#fce7f3"/></svg>';
+
+  const contenido = document.createElement('div');
+  const titulo = document.createElement('strong');
+  titulo.className = 'block text-base font-bold text-gray-900';
+  titulo.textContent = lugar.nombre;
+  contenido.appendChild(titulo);
+  const direccion = document.createElement('p');
+  direccion.className = 'mt-1 text-sm text-gray-600';
+  direccion.textContent = [lugar.direccion, lugar.ciudad].filter(Boolean).join(', ');
+  contenido.appendChild(direccion);
+  const ingresar = document.createElement('a');
+  ingresar.href = urlFicha.replace('__ID__', encodeURIComponent(String(lugar.id)));
+  ingresar.textContent = 'INGRESAR';
+  ingresar.className = 'mt-2 inline-block rounded-lg bg-rose-900 px-3 py-2 text-sm font-bold text-white no-underline';
+  contenido.appendChild(ingresar);
+
+  const popup = new maplibregl.Popup({ offset: 24, closeButton: true, closeOnClick: true })
+   .setDOMContent(contenido);
+  new maplibregl.Marker({ element: icono, anchor: 'bottom' })
+   .setLngLat([lng, lat])
+   .setPopup(popup)
+   .addTo(mapa);
+  bounds.extend([lng, lat]);
+  cantidad++;
  });
- capa.on('tileerror', function () {
-  fallas++;
-  if (estado) estado.textContent = 'No se pudieron cargar algunas zonas del mapa. Probá actualizar la página o revisar la conexión.';
- });
- capa.on('load', function () {
-  if (estado && fallas === 0) estado.hidden = true;
- });
- capa.addTo(mapa);
- const lugares = @json($establecimientos);
- const puntos=[];
- const urlFicha = @json(route('recorre.establecimientos.show', ['id' => '__ID__']));
- const iconoCopa = L.divIcon({
-  className: '',
-  html: '<span style="display:grid;place-items:center;width:38px;height:42px;filter:drop-shadow(0 2px 3px #0005)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 42" width="36" height="42" aria-hidden="true"><path d="M8 5h20l-2.1 12.2a8 8 0 0 1-6.4 6.5V34h7v3H9.5v-3h7v-10.3a8 8 0 0 1-6.4-6.5L8 5Z" fill="#7f1d3f" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M11 9h14l-1.1 7.5H12.1L11 9Z" fill="#f7d9e2"/></svg></span>',
-  iconSize: [38, 42],
-  iconAnchor: [19, 40],
-  popupAnchor: [0, -38]
- });
- lugares.forEach(function(l){
-  const lat=Number(l.latitud), lng=Number(l.longitud);
-  if(!Number.isFinite(lat)||!Number.isFinite(lng)) return;
-  const nodo=document.createElement('div');
-  const titulo=document.createElement('strong'); titulo.textContent=l.nombre; nodo.appendChild(titulo);
-  const dir=document.createElement('p'); dir.textContent=l.direccion+', '+l.ciudad; nodo.appendChild(dir);
-  const ingresar=document.createElement('a');
-  ingresar.href=urlFicha.replace('__ID__', encodeURIComponent(String(l.id)));
-  ingresar.textContent='INGRESAR';
-  ingresar.className='inline-block mt-2 rounded bg-rose-900 px-3 py-1.5 text-sm font-bold text-white no-underline';
-  nodo.appendChild(ingresar);
-  puntos.push(L.marker([lat,lng],{icon:iconoCopa}).addTo(mapa).bindPopup(nodo));
- });
- if(puntos.length) mapa.fitBounds(L.featureGroup(puntos).getBounds().pad(.15),{maxZoom:13});
+
+ if (cantidad > 0) mapa.fitBounds(bounds, { padding: 48, maxZoom: 13, duration: 0 });
 });
 </script>
+<style>
+.recorre-copa-marker { display:grid; place-items:center; width:42px; height:46px; cursor:pointer; filter:drop-shadow(0 2px 4px #0009); transition:transform .15s ease; }
+.recorre-copa-marker:hover { transform:translateY(-3px) scale(1.08); }
+.maplibregl-popup-content { border-radius:14px; padding:14px; box-shadow:0 8px 28px #0005; }
+.maplibregl-popup-close-button { padding:6px 9px; color:#4b5563; font-size:18px; }
+.maplibregl-ctrl-group { overflow:hidden; border-radius:12px !important; }
+</style>
 </body></html>
