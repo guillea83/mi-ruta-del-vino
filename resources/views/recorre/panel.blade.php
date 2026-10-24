@@ -45,7 +45,7 @@
 
         <section class="rounded-2xl bg-white p-6 shadow-sm">
             <h3 class="text-xl font-bold text-gray-900">Solicitar incorporación</h3>
-            <p class="mb-5 mt-1 text-sm text-gray-600">Tu alta quedará pendiente hasta que la apruebe el administrador. Podés copiar las coordenadas desde Google Maps.</p>
+            <p class="mb-5 mt-1 text-sm text-gray-600">Tu alta quedará pendiente hasta que la apruebe el administrador. Escribí la dirección habitual y el sistema la ubicará en el mapa.</p>
             <form method="POST" action="{{ route('recorre.registrar') }}" class="grid gap-4 md:grid-cols-2">
                 @csrf
                 @include('recorre.partials.form-establecimiento')

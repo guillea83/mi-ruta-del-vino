@@ -7,7 +7,7 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-bold text-rose-950">Administrar establecimientos y eventos</h1>
-                <p class="mt-1 text-sm text-gray-600">Solo tu cuenta administradora puede aprobar incorporaciones y publicaciones.</p>
+                <p class="mt-1 text-sm text-gray-600">Sesión administradora: {{ auth()->user()->name }} ({{ auth()->user()->email }}). Desde esta cuenta podés aprobar solicitudes y cargar establecimientos autorizados.</p>
             </div>
             <a href="{{ route('recorre.index') }}" class="font-semibold text-rose-800 underline">← Ir al mapa</a>
         </div>
