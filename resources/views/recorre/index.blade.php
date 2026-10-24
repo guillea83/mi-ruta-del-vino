@@ -2,7 +2,7 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
  <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
  <div><h1 class="text-3xl font-bold text-rose-950">Descubrí lugares y experiencias del vino</h1><p class="text-gray-600 mt-2">Vinotecas y otros establecimientos adheridos. Eventos publicados por sus organizadores.</p></div>
- @auth <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ route('recorre.panel') }}">Soy un establecimiento</a>
+ @auth <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ $esAdministrador ? route('recorre.admin') : route('recorre.panel') }}">{{ $esAdministrador ? 'Administrar Recorré' : 'Mi establecimiento' }}</a>
  @else <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ route('login') }}">Adherir mi establecimiento</a> @endauth
  </div>
  <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white"><div id="mapa-recorre" style="height:460px;min-height:320px"></div></div>
