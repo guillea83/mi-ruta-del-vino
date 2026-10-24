@@ -5,7 +5,10 @@
  @auth <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ $esAdministrador ? route('recorre.admin') : route('recorre.panel') }}">{{ $esAdministrador ? 'Administrar Recorré' : 'Mi establecimiento' }}</a>
  @else <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ route('login') }}">Adherir mi establecimiento</a> @endauth
  </div>
- <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white"><div id="mapa-recorre" style="height:460px;min-height:320px"></div></div>
+ <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white">
+  <div id="mapa-recorre" style="height:460px;min-height:320px;background:#eef0ed"></div>
+  <p id="mapa-estado" class="px-4 py-2 text-sm text-gray-500" aria-live="polite">Cargando mapa…</p>
+ </div>
  <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
  @forelse($establecimientos as $local)
  <article class="rounded-2xl bg-white p-5 shadow-sm border"><p class="text-xs uppercase text-rose-700 font-semibold">{{ str_replace('_', ' ', $local['tipo']) }}</p><h3 class="text-xl font-bold mt-1">{{ $local['nombre'] }}</h3><p class="text-sm text-gray-600 mt-2">{{ $local['direccion'] }}, {{ $local['ciudad'] }}, {{ $local['provincia'] }}</p><p class="mt-3">{{ $local['descripcion'] ?? '' }}</p><div class="flex flex-wrap gap-3 mt-3 text-rose-800 underline">@if(!empty($local['instagram']))<a target="_blank" rel="noopener noreferrer" href="{{ $local['instagram'] }}">Instagram</a>@endif @if(!empty($local['sitio_web']))<a target="_blank" rel="noopener noreferrer" href="{{ $local['sitio_web'] }}">Sitio web</a>@endif</div></article>
@@ -20,36 +23,32 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
  if (typeof L === 'undefined') return;
- const mapa = L.map('mapa-recorre', { fadeAnimation: false }).setView([-34.6,-58.4],5);
- const urlTeselas = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
- const opciones = {
+ // Una sola capa de teselas estándar (256 × 256 píxeles). La combinación
+ // anterior de capas de 512/256 provocaba parches y espacios en blanco.
+ const mapa = L.map('mapa-recorre', {
+  zoomControl: true,
+  fadeAnimation: false,
+  preferCanvas: true
+ }).setView([-37.5, -63.5], 4);
+
+ const estado = document.getElementById('mapa-estado');
+ let fallas = 0;
+ const capa = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  minZoom: 3,
   maxZoom: 19,
+  tileSize: 256,
   updateWhenIdle: true,
-  updateWhenZooming: false,
-  keepBuffer: 1
- };
- // Vista general: menos solicitudes y carga más rápida, con menor definición.
- // Vista cercana: detalle normal para ubicar comercios y calles.
- const capaGeneral = L.tileLayer(urlTeselas, {...opciones, tileSize: 512, zoomOffset: -1});
- const capaDetalle = L.tileLayer(urlTeselas, opciones);
- let capaActual = null;
- function actualizarCapa() {
-  const siguiente = mapa.getZoom() <= 8 ? capaGeneral : capaDetalle;
-  if (siguiente === capaActual) return;
-  const anterior = capaActual;
-  const estabaCargada = mapa.hasLayer(siguiente);
-  capaActual = siguiente;
-  if (!estabaCargada) siguiente.addTo(mapa);
-  if (anterior) {
-   if (estabaCargada) mapa.removeLayer(anterior);
-   else siguiente.once('load', function () {
-    if (capaActual === siguiente && mapa.hasLayer(anterior)) mapa.removeLayer(anterior);
-   });
-  }
- }
- mapa.on('zoomend', actualizarCapa);
- actualizarCapa();
+  keepBuffer: 2
+ });
+ capa.on('tileerror', function () {
+  fallas++;
+  if (estado) estado.textContent = 'No se pudieron cargar algunas zonas del mapa. Probá actualizar la página o revisar la conexión.';
+ });
+ capa.on('load', function () {
+  if (estado && fallas === 0) estado.hidden = true;
+ });
+ capa.addTo(mapa);
  const lugares = @json($establecimientos);
  const puntos=[];
  lugares.forEach(function(l){
