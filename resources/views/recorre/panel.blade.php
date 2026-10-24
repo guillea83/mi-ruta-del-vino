@@ -1,37 +1,107 @@
 <x-app-layout>
-<x-slot name="header"><h2 class="text-xl font-bold text-rose-950">Recorré · Panel de establecimientos</h2></x-slot>
-<div class="max-w-6xl mx-auto px-4 py-8 space-y-8">
-<a class="text-rose-800 underline" href="{{ route('recorre.index') }}">← Volver al mapa</a>
-@if(session('status'))<div class="p-4 bg-green-50 text-green-900 rounded-xl">{{ session('status') }}</div>@endif
-@if($errors->any())<div class="p-4 bg-red-50 text-red-900 rounded-xl"><ul class="list-disc ml-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-<section class="bg-white p-6 rounded-2xl shadow-sm"><h3 class="text-xl font-bold mb-2">Adherir un establecimiento</h3><p class="text-gray-600 mb-5">Completá los datos y enviaremos la solicitud a revisión. Para la ubicación podés copiar las coordenadas desde Google Maps.</p>
-<form method="POST" action="{{ route('recorre.registrar') }}" class="grid md:grid-cols-2 gap-4">@csrf
-@foreach(['nombre'=>'Nombre','direccion'=>'Dirección','ciudad'=>'Ciudad','provincia'=>'Provincia','latitud'=>'Latitud','longitud'=>'Longitud','instagram'=>'Instagram (URL)','sitio_web'=>'Sitio web (URL)','whatsapp'=>'WhatsApp'] as $campo=>$etiqueta)
-<label class="block text-sm font-semibold">{{ $etiqueta }}<input name="{{ $campo }}" value="{{ old($campo) }}" @if(in_array($campo,['nombre','direccion','ciudad','provincia','latitud','longitud'])) required @endif class="mt-1 w-full rounded-lg border-gray-300"></label>
-@endforeach
-<label class="block text-sm font-semibold">Tipo<select name="tipo" class="mt-1 w-full rounded-lg border-gray-300"><option value="vinoteca">Vinoteca</option><option value="bodega">Bodega</option><option value="vinedo">Viñedo</option><option value="wine_bar">Wine bar</option><option value="otro">Otro</option></select></label>
-<label class="block md:col-span-2 text-sm font-semibold">Descripción<textarea name="descripcion" rows="3" class="mt-1 w-full rounded-lg border-gray-300">{{ old('descripcion') }}</textarea></label>
-<div class="md:col-span-2"><button class="bg-rose-900 text-white rounded-xl px-5 py-3 font-bold">Enviar solicitud</button></div></form></section>
-<section class="bg-white p-6 rounded-2xl shadow-sm"><h3 class="text-xl font-bold mb-4">Mis establecimientos</h3>
-@forelse($establecimientos as $local)<div class="border-b py-3"><strong>{{ $local['nombre'] }}</strong> <span class="text-sm text-gray-500">· {{ $local['estado'] }} · Plan: {{ $local['plan'] }}</span></div>@empty<p>Aún no hay establecimientos registrados.</p>@endforelse
-</section>
-@if($establecimientos->where('estado','aprobado')->where('user_id',auth()->id())->isNotEmpty())
-<section class="bg-white p-6 rounded-2xl shadow-sm"><h3 class="text-xl font-bold mb-4">Publicar evento</h3><form method="POST" action="{{ route('recorre.eventos') }}" class="grid md:grid-cols-2 gap-4">@csrf
-<label>Establecimiento<select required name="establecimiento_id" class="w-full rounded-lg border-gray-300">@foreach($establecimientos->where('estado','aprobado')->where('user_id',auth()->id()) as $local)<option value="{{ $local['id'] }}">{{ $local['nombre'] }}</option>@endforeach</select></label>
-<label>Título<input required name="titulo" class="w-full rounded-lg border-gray-300"></label>
-<label>Fecha<input required type="date" name="fecha" min="{{ now()->toDateString() }}" class="w-full rounded-lg border-gray-300"></label>
-<label>Hora<input type="time" name="hora" class="w-full rounded-lg border-gray-300"></label>
-<label>Enlace de consulta<input name="enlace" type="url" class="w-full rounded-lg border-gray-300"></label>
-<label class="md:col-span-2">Descripción<textarea name="descripcion" class="w-full rounded-lg border-gray-300"></textarea></label>
-<div class="md:col-span-2"><button class="bg-rose-900 text-white rounded-xl px-5 py-3 font-bold">Enviar evento</button></div></form></section>
-@endif
-<section class="bg-white p-6 rounded-2xl shadow-sm"><h3 class="text-xl font-bold mb-4">Eventos registrados</h3>@forelse($eventos as $evento)<p class="border-b py-3">{{ $evento['fecha'] }} · {{ $evento['titulo'] }} <span class="text-gray-500">({{ $evento['estado'] }})</span></p>@empty<p>Sin eventos todavía.</p>@endforelse</section>
-@if($admin)<section class="bg-amber-50 rounded-2xl p-6"><h3 class="text-xl font-bold mb-4">Moderación administrativa</h3>
-@foreach(['establecimientos'=>$establecimientos,'eventos'=>$eventos] as $tipo=>$items)
-<h4 class="text-lg font-semibold capitalize my-3">{{ $tipo }}</h4>
-@foreach($items as $item)<div class="flex flex-wrap items-center justify-between gap-3 border-b py-3"><span>{{ $item['nombre'] ?? $item['titulo'] }} · {{ $item['estado'] }}</span>
-<form method="POST" action="{{ route('recorre.moderar',[$tipo,$item['id']]) }}" class="flex gap-2">@csrf
-<select name="estado" class="rounded-lg border-gray-300"><option value="aprobado">Aprobar</option><option value="rechazado">Rechazar</option><option value="pendiente">Pendiente</option></select><button class="rounded-lg bg-rose-900 px-4 py-2 text-white">Guardar</button>
-</form></div>@endforeach
-@endforeach</section>@endif
-</div></x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-xl font-bold text-rose-950">🍇 Recorré · Mi establecimiento</h2>
+    </x-slot>
+
+    <div class="mx-auto max-w-6xl space-y-8 px-4 py-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-rose-950">Panel de establecimientos</h1>
+                <p class="mt-1 text-sm text-gray-600">Solicitá tu incorporación y, cuando estés aprobado, publicá eventos.</p>
+            </div>
+            <a class="font-semibold text-rose-800 underline" href="{{ route('recorre.index') }}">← Volver al mapa</a>
+        </div>
+
+        @if(session('status'))
+            <div class="rounded-xl bg-green-50 p-4 text-green-900">{{ session('status') }}</div>
+        @endif
+        @if($errors->any())
+            <div class="rounded-xl bg-red-50 p-4 text-red-900">
+                <ul class="ml-5 list-disc">
+                    @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                </ul>
+            </div>
+        @endif
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-gray-900">Mis establecimientos</h3>
+            <p class="mt-1 text-sm text-gray-600">Solo el administrador puede aprobar tu solicitud. Hasta entonces, no aparece en el mapa.</p>
+            <div class="mt-4 space-y-3">
+                @forelse($establecimientos as $local)
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
+                        <div>
+                            <strong>{{ $local['nombre'] }}</strong>
+                            <p class="text-sm text-gray-600">{{ $local['ciudad'] }}, {{ $local['provincia'] }}</p>
+                        </div>
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold {{ $local['estado'] === 'aprobado' ? 'bg-green-100 text-green-900' : ($local['estado'] === 'pendiente' ? 'bg-amber-100 text-amber-900' : 'bg-gray-100 text-gray-700') }}">
+                            {{ ucfirst($local['estado']) }}
+                        </span>
+                    </div>
+                @empty
+                    <p class="rounded-xl bg-gray-50 p-4 text-sm text-gray-600">Todavía no registraste ningún establecimiento.</p>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-gray-900">Solicitar incorporación</h3>
+            <p class="mb-5 mt-1 text-sm text-gray-600">Tu alta quedará pendiente hasta que la apruebe el administrador. Podés copiar las coordenadas desde Google Maps.</p>
+            <form method="POST" action="{{ route('recorre.registrar') }}" class="grid gap-4 md:grid-cols-2">
+                @csrf
+                @include('recorre.partials.form-establecimiento')
+                <div class="md:col-span-2">
+                    <button class="rounded-xl bg-rose-900 px-5 py-3 font-bold text-white hover:bg-rose-950">Enviar solicitud de alta</button>
+                </div>
+            </form>
+        </section>
+
+        @if($establecimientos->where('estado', 'aprobado')->isNotEmpty())
+            <section class="rounded-2xl bg-white p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-900">Publicar un evento</h3>
+                <p class="mb-5 mt-1 text-sm text-gray-600">Los eventos también necesitan aprobación antes de aparecer en la agenda pública.</p>
+                <form method="POST" action="{{ route('recorre.eventos') }}" class="grid gap-4 md:grid-cols-2">
+                    @csrf
+                    <label class="text-sm font-semibold">Establecimiento
+                        <select required name="establecimiento_id" class="mt-1 w-full rounded-lg border-gray-300">
+                            @foreach($establecimientos->where('estado','aprobado') as $local)
+                                <option value="{{ $local['id'] }}">{{ $local['nombre'] }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <label class="text-sm font-semibold">Título
+                        <input required name="titulo" value="{{ old('titulo') }}" class="mt-1 w-full rounded-lg border-gray-300">
+                    </label>
+                    <label class="text-sm font-semibold">Fecha
+                        <input required type="date" name="fecha" min="{{ now()->toDateString() }}" value="{{ old('fecha') }}" class="mt-1 w-full rounded-lg border-gray-300">
+                    </label>
+                    <label class="text-sm font-semibold">Hora
+                        <input type="time" name="hora" value="{{ old('hora') }}" class="mt-1 w-full rounded-lg border-gray-300">
+                    </label>
+                    <label class="text-sm font-semibold">Enlace externo del evento
+                        <input type="url" name="enlace" value="{{ old('enlace') }}" class="mt-1 w-full rounded-lg border-gray-300">
+                    </label>
+                    <label class="text-sm font-semibold md:col-span-2">Descripción
+                        <textarea name="descripcion" rows="3" class="mt-1 w-full rounded-lg border-gray-300">{{ old('descripcion') }}</textarea>
+                    </label>
+                    <div class="md:col-span-2">
+                        <button class="rounded-xl bg-rose-900 px-5 py-3 font-bold text-white hover:bg-rose-950">Enviar evento para aprobación</button>
+                    </div>
+                </form>
+            </section>
+        @endif
+
+        <section class="rounded-2xl bg-white p-6 shadow-sm">
+            <h3 class="text-xl font-bold text-gray-900">Mis eventos</h3>
+            <div class="mt-4 space-y-2">
+                @forelse($eventos as $evento)
+                    <div class="flex flex-wrap justify-between gap-2 border-b py-3">
+                        <span>{{ $evento['fecha'] }} · {{ $evento['titulo'] }}</span>
+                        <span class="text-sm font-semibold text-gray-600">{{ ucfirst($evento['estado']) }}</span>
+                    </div>
+                @empty
+                    <p class="text-sm text-gray-600">No cargaste eventos todavía.</p>
+                @endforelse
+            </div>
+        </section>
+    </div>
+</x-app-layout>
