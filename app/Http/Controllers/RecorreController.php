@@ -72,6 +72,22 @@ class RecorreController extends Controller
         return view('recorre.index', compact('establecimientos', 'eventos', 'esAdministrador'));
     }
 
+    public function verEstablecimiento(string $id): View
+    {
+        $establecimiento = collect($this->leer('establecimientos.json'))
+            ->first(fn ($local) => ($local['id'] ?? null) === $id && ($local['estado'] ?? null) === 'aprobado');
+
+        abort_if($establecimiento === null, 404);
+
+        $eventos = collect($this->leer('eventos.json'))
+            ->where('establecimiento_id', $id)
+            ->where('estado', 'aprobado')
+            ->filter(fn ($evento) => ($evento['fecha'] ?? '') >= now()->toDateString())
+            ->sortBy('fecha')->values();
+
+        return view('recorre.establecimiento', compact('establecimiento', 'eventos'));
+    }
+
     public function panel(Request $request): View|RedirectResponse
     {
         // Un administrador no usa ni puede usar el panel de alta de socios.
@@ -154,6 +170,7 @@ class RecorreController extends Controller
             'establecimiento_id' => 'required|uuid',
             'titulo' => 'required|string|max:180',
             'descripcion' => 'nullable|string|max:2000',
+            'servicios' => 'nullable|string|max:1200',
             'fecha' => 'required|date|after_or_equal:today',
             'hora' => 'nullable|date_format:H:i',
             'enlace' => 'nullable|url|max:500',

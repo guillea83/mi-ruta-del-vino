@@ -18,6 +18,8 @@ Route::get('/storage/{path}', function (string $path) {
 })->where('path', '.*')->name('storage.public');
 
 Route::get('/recorre', [RecorreController::class, 'index'])->name('recorre.index');
+Route::get('/recorre/establecimientos/{id}', [RecorreController::class, 'verEstablecimiento'])
+    ->whereUuid('id')->name('recorre.establecimientos.show');
 
 Route::middleware([
     'auth:sanctum',

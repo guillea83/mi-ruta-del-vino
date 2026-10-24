@@ -63,6 +63,10 @@
     Descripción
     <textarea name="descripcion" rows="3" class="mt-1 w-full rounded-lg border-gray-300">{{ old('descripcion') }}</textarea>
 </label>
+<label class="block text-sm font-semibold text-gray-800 md:col-span-2">
+    Servicios del establecimiento
+    <textarea name="servicios" rows="3" maxlength="1200" placeholder="Ej.: visitas guiadas, degustaciones, restaurante, venta de vinos" class="mt-1 w-full rounded-lg border-gray-300">{{ old('servicios') }}</textarea>
+</label>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
