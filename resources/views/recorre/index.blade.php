@@ -6,7 +6,7 @@
  @else <a class="rounded-xl bg-rose-900 px-5 py-3 text-white font-semibold" href="{{ route('login') }}">Adherir mi establecimiento</a> @endauth
  </div>
  <div class="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-white">
-  <div id="mapa-recorre" style="height:460px;min-height:320px;background:#171923"></div>
+  <div id="mapa-recorre" style="height:460px;min-height:320px;background:#f3f4f6"></div>
   <p id="mapa-estado" class="px-4 py-2 text-sm text-gray-500" aria-live="polite">Cargando mapa…</p>
  </div>
  <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -27,7 +27,7 @@ const lugares = @json($establecimientos);
 const urlFicha = @json(route('recorre.establecimientos.show', ['id' => '__ID__']));
 const mapa = new maplibregl.Map({
  container: 'mapa-recorre',
- style: 'https://tiles.openfreemap.org/styles/dark',
+ style: 'https://tiles.openfreemap.org/styles/bright',
  center: [-63.5, -37.5],
  zoom: 4,
  attributionControl: true,
