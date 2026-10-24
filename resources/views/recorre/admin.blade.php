@@ -79,7 +79,7 @@
             <p class="mb-5 mt-1 text-sm text-gray-600">Alta directa de administración. Aparecerá en el mapa sin esperar una solicitud de otro usuario.</p>
             <form method="POST" action="{{ route('recorre.admin.crear') }}" class="grid gap-4 md:grid-cols-2">
                 @csrf
-                @include('recorre.partials.form-establecimiento')
+                @include('recorre.partials.form-establecimiento', ['desdeAdministracion' => true])
                 <div class="md:col-span-2">
                     <button class="rounded-xl bg-rose-900 px-5 py-3 font-bold text-white hover:bg-rose-950">Agregar y publicar en el mapa</button>
                 </div>
